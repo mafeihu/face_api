@@ -9,9 +9,14 @@ namespace app\controller;
 use think\Controller;
 class Api extends HttpCurl
 {
+    /**
+     * 测试接口
+     */
     public function getCeshi()
     {
         echo "ceshi";
     }
+
+
 
 }

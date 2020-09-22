@@ -35,109 +35,123 @@ Class HttpCurl extends Controller
     }
 
     //GET请求方式
-    function get($path, $data=[])
-    {
+    function geturl($path, $data=[]){
+        //路由拼接
         $this->path = $path;
         if (!empty($data) && count($data)>0)
         {
             $this->path .= '?'.$this->buildGetQuery($data);
         }
+
+        //头部定制
+        $headerArray = array(
+            "Content-type: text/html; charset=utf-8",
+            "Content-Type: application/json",
+            'Authorization: '.$this->authorization
+        );
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->path);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
-        curl_CURLOPT_HTTPHEADERsetopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,
-            array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($this->postdata),
-                'Authorization: '.$this->Authorization
-            )
-        );
-        $result = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch,CURLOPT_HTTPHEADER,$headerArray);
+        $output = curl_exec($ch);
         curl_close($ch);
-        return $result;
+        return $output;
+    }
+
+    //POST请求方式
+    function posturl($url,$data){
+        //数据转化
+        $this->postdata = $this->buildJsonQuery($data);
+        //头部定制
+        $headerArray =array(
+            "Content-type:application/json;charset='utf-8'",
+            "Accept:application/json",
+            'Authorization: '.$this->authorization
+        );
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,FALSE);
+        curl_setopt($curl, CURLOPT_POST, 1);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $this->postdata);
+        curl_setopt($curl,CURLOPT_HTTPHEADER,$headerArray);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $output = curl_exec($curl);
+        curl_close($curl);
+        return $output;
     }
 
     //PUT请求方式
-    function put($path, $data)
-    {
+    function puturl($path,$data){
         $this->path = $path;
-        if (!empty($data)|| count($data)>0)
-        {
-            $this->postdata = $this->buildJsonQuery($data);
-        }
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->path);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($ch, CURLOPT_POSTFIELDS,$this->postdata);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,
-            array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($this->postdata),
-                'Authorization: '.$this->Authorization
-            )
+        $this->postdata = $this->buildJsonQuery($data);
+
+        //头部定制
+        $headerArray =array(
+            "Content-type:application/json;charset='utf-8'",
+            "Accept:application/json",
+            'Authorization: '.$this->authorization
         );
-        $result = curl_exec($ch);
+        $ch = curl_init(); //初始化CURL句柄
+        curl_setopt($ch, CURLOPT_URL, $path); //设置请求的URL
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); //设为TRUE把curl_exec()结果转化为字串，而不是直接输出
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST,"PUT"); //设置请求方式
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->postdata);//设置提交的字符串
+        curl_setopt ($ch, CURLOPT_HTTPHEADER, $headerArray);
+        $output = curl_exec($ch);
         curl_close($ch);
-        return $result;
+        return $output;
     }
 
     //DELETE请求方式
-    function delete($path, $data=null)
-    {
+    function delurl($path,$data=[]){
+
+        //数据转化
         $this->path = $path;
-        if (!empty($data)|| count($data)>0)
-        {
-            $this->postdata = $this->buildJsonQuery($data);
-        }
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->path);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($ch, CURLOPT_POSTFIELDS,$this->postdata);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,
-            array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($this->postdata),
-                'Authorization: '.$this->Authorization
-            )
+        $this->postdata = $this->buildJsonQuery($data);
+
+        //头部定制
+        $headerArray =array(
+            "Content-type:application/json;charset='utf-8'",
+            "Accept:application/json",
+            'Authorization: '.$this->authorization
         );
-        $result = curl_exec($ch);
+        $ch = curl_init();
+        curl_setopt ($ch,CURLOPT_URL,$this->path);
+        curl_setopt ($ch, CURLOPT_HTTPHEADER, $headerArray);
+        curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt ($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($ch, CURLOPT_POSTFIELDS,$this->postdata);
+        $output = curl_exec($ch);
         curl_close($ch);
-        return $result;
+        return $output;
     }
 
-    /**
-     *post请求方式
-     */
-    public function post($path, $data =[]){
+    //PATCH请求方式
+    function patchurl($path,$data){
+        //数据转化
+        $this->path = $path;
         $this->postdata = $this->buildJsonQuery($data);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $path);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->postdata);
-        curl_setopt($ch, CURLOPT_HTTPHEADER,
-            array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($this->postdata),
-                'Authorization: '.$this->Authorization
-            )
+
+        //头部定制
+        $headerArray =array(
+            "Content-type:application/json;charset='utf-8'",
+            "Accept:application/json",
+            'Authorization: '.$this->authorization
         );
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_COOKIEJAR,  $this->cookiefile);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
-        $result = curl_exec($ch);
+        $ch = curl_init();
+        curl_setopt ($ch,CURLOPT_URL,$this->path);
+        curl_setopt ($ch, CURLOPT_HTTPHEADER, $headerArray);
+        curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt ($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
+        curl_setopt($ch, CURLOPT_POSTFIELDS,$this->postdata);     //20170611修改接口，用/id的方式传递，直接写在url中了
+        $output = curl_exec($ch);
         curl_close($ch);
-        return $result;
+        return $output;
     }
+
 
     //=================================================方法================================================//
 

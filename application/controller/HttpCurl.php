@@ -21,6 +21,7 @@ Class HttpCurl extends Controller
     public $accept = 'text/xml,application/xml,application/xhtml+xml,text/html,text/plain,image/png,image/jpeg,image/gif,*/*';
     public $content_type = 'application/json';
     public $user_agent = "Koala Admin";
+    public $authorization = "e3f14076-571e-4243-b315-bbc4d34547d4";
     public $timeout = 20;
     public $use_gzip = true;
     public $persist_cookies = true;
@@ -39,13 +40,20 @@ Class HttpCurl extends Controller
         $this->path = $path;
         if (!empty($data) && count($data)>0)
         {
-            $this->path .= '&'.$this->buildGetQuery($data);
+            $this->path .= '?'.$this->buildGetQuery($data);
         }
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->path);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
+        curl_CURLOPT_HTTPHEADERsetopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,
+            array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($this->postdata),
+                'Authorization: '.$this->Authorization
+            )
+        );
         $result = curl_exec($ch);
         curl_close($ch);
         return $result;
@@ -65,9 +73,12 @@ Class HttpCurl extends Controller
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
         curl_setopt($ch, CURLOPT_POSTFIELDS,$this->postdata);
         curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        curl_setopt($ch, CURLOPT_HTTPHEADER,
+            array(
                 'Content-Type: application/json',
-                'Content-Length: ' . strlen($this->postdata))
+                'Content-Length: ' . strlen($this->postdata),
+                'Authorization: '.$this->Authorization
+            )
         );
         $result = curl_exec($ch);
         curl_close($ch);
@@ -88,6 +99,13 @@ Class HttpCurl extends Controller
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
         curl_setopt($ch, CURLOPT_POSTFIELDS,$this->postdata);
         curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,
+            array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($this->postdata),
+                'Authorization: '.$this->Authorization
+            )
+        );
         $result = curl_exec($ch);
         curl_close($ch);
         return $result;
@@ -106,7 +124,13 @@ Class HttpCurl extends Controller
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $this->postdata);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen($this->postdata)));
+        curl_setopt($ch, CURLOPT_HTTPHEADER,
+            array(
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($this->postdata),
+                'Authorization: '.$this->Authorization
+            )
+        );
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         curl_setopt($ch, CURLOPT_COOKIEJAR,  $this->cookiefile);
         curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiefile);
